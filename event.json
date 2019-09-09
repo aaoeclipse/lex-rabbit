@@ -1,0 +1,17 @@
+{
+  "bot": {
+    "name": "DomicilioBot",
+    "alias": "null",
+    "version": "$LATEST"
+  },
+  "currentIntent": {
+    "name": "OrderFood",
+    "slots": {
+      "number": "1",
+      "salon": "A201",
+      "producto": "Pizza",
+      "bebida": "Agua",
+      "tarjeta": "515930483000957"
+    }
+  }
+}

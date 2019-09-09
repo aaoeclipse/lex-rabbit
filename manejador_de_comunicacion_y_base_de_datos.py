@@ -7,16 +7,16 @@ import os
 import datetime
 from base64 import b64decode
 # get Environment Variables
-RABBIT_HOST = os.environ['RABBIT_HOST']
-RABBIT_USER = os.environ['RABBIT_USER']
-RABBIT_PWD_ENCRYPTED = os.environ['RABBIT_PWD']
+RABBIT_HOST = 'http://ec2-18-212-30-64.compute-1.amazonaws.com'
+RABBIT_USER = 'guest'
+RABBIT_PWD_ENCRYPTED = 'guest'
+AWS_DEFAULT_REGION='us-west-2'
+kms = boto3.client('kms', region_name='us-west-2')
 
 # Decrypt Password
-RABBIT_PWD_DECRYPTED = boto3.client('kms').decrypt(CiphertextBlob=b64decode(RABBIT_PWD_ENCRYPTED))['Plaintext']
+RABBIT_PWD_DECRYPTED = boto3.client(kms).decrypt(CiphertextBlob=b64decode(RABBIT_PWD_ENCRYPTED))['Plaintext']
 credentials = pika.PlainCredentials(RABBIT_USER, RABBIT_PWD_DECRYPTED)
 parameters = pika.ConnectionParameters(credentials=credentials, ssl=True, host=RABBIT_HOST, virtual_host=RABBIT_USER)  #CloudAMQP sets the vhost same as User
-
-
 
 db_host = "domicilio.cd1xq6ssophg.us-east-1.rds.amazonaws.com"
 db_port = 5432
@@ -61,6 +61,7 @@ def lambda_handler(event, context):
                 }
             }
         }
+        
     if len(tarjeta) < 5:
         return {
             "dialogAction":{
@@ -116,5 +117,12 @@ def lambda_handler(event, context):
             }
         }
     }
+
+def conseguir_productos():
+    connection = pika.BlockingConnection(parameters)  #Establishes TCP Connection with RabbitMQ
+    channel = connection.channel()  #Establishes logical channel within Connection
     
+    channel.basic_publish(exchange='', routing_key='queue-pedidos', body='Howdy RabbitMQ, Lambda Here!! ' + datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y") + ' UTC') #Send Message
+    
+    connection.close()        #Close Connection and Channel(s) within
     
